@@ -30,6 +30,10 @@ Welcome to the Cat & Mouse Chase Game! This project is an object-oriented progra
 	•	Stepping into a trap causes the player to lose all currently collected mice.
 	•	If the player has no mice, stepping into a trap has no effect.
 
+### New Features (v1.1.1)
+
+Add README file.
+
 ## How to Play
   1.	Compile and run the project files.
   2.	Move using directional commands: N, S, E, W.
