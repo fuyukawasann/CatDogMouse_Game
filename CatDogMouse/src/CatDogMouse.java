@@ -19,6 +19,7 @@ public class CatDogMouse
 	static final int MAXMICE=20;
 	static final int MAXLIFE=5;
 	static final int MAXTRAP=3;
+	static final int MAXADDLIFE=3;
 
 	
 	// A location in the house can contain an obsatcle, player, dog or mouse
@@ -65,8 +66,9 @@ public class CatDogMouse
 	// This is the count of how many dogs and mice are currently in the house
 	static int numDogs;
 	static int numMice;
-//	static int numLife;
-//	static int numTraps;
+	static int numLife;
+	static int numTraps;
+	static int numAddLife;
 	
 	// This variable contains the location of the player
 	static Animal player;
@@ -117,6 +119,7 @@ public class CatDogMouse
 				house.getHouseNumber(), house.getFloorNumber(), highScore);
 		System.out.printf("Mice Carried:%d Mice Removed:%d\n", 
 				miceCarried, miceRemoved);
+		System.out.printf("Life:%d\n", numLife);
 		System.out.printf("==============================\n");
 	}
 	
@@ -136,6 +139,8 @@ public class CatDogMouse
 		System.out.printf("Up Stairs = %c\n", UPCHAR);
 		System.out.printf("Down Stairs = %c\n", DOWNCHAR);
 		System.out.printf("Helicopter = %c\n", EXITCHAR);
+		System.out.printf("Additional Life = %c\n", LIFECHAR);
+		System.out.printf("Trap = %c\n", TRAPCHAR);
 		System.out.printf("\n");
 	
 	}
@@ -570,7 +575,74 @@ public class CatDogMouse
 		player.setLocation(myLocation);
 		house.setChar(myLocation.getX(),myLocation.getY(),CATCHAR);
 	}
-	
+
+	/////////////////////////////////////////////////////////////////////////
+	//
+	// This funcation adds the specific additional life.
+	// to an empty location in the house
+	//
+	/////////////////////////////////////////////////////////////////////////
+
+	public static void addOneAdditionalLife()
+	{
+		Location myLocation = new Location();
+
+		house.chooseEmptyLocation(myLocation, randomNum);
+		while(house.closerToCenter(myLocation.getX(),myLocation.getY(),TOOCLOSE))
+			house.chooseEmptyLocation(myLocation, randomNum);
+		house.setChar(myLocation.getX(),myLocation.getY(),LIFECHAR);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//
+	// This funcation adds all dogs to empty locations in the house
+	//
+	/////////////////////////////////////////////////////////////////////////
+
+	public static void addManyAdditionalLife()
+	{
+		int addLifeNumber;
+
+		for (addLifeNumber = 0; addLifeNumber < numAddLife; addLifeNumber++)
+		{
+			addOneAdditionalLife();
+		}
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////
+	//
+	// This funcation adds the specific additional life.
+	// to an empty location in the house
+	//
+	/////////////////////////////////////////////////////////////////////////
+
+	public static void addOneTrap()
+	{
+		Location myLocation = new Location();
+
+		house.chooseEmptyLocation(myLocation, randomNum);
+		while(house.closerToCenter(myLocation.getX(),myLocation.getY(),TOOCLOSE))
+			house.chooseEmptyLocation(myLocation, randomNum);
+		house.setChar(myLocation.getX(),myLocation.getY(),TRAPCHAR);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//
+	// This funcation adds all dogs to empty locations in the house
+	//
+	/////////////////////////////////////////////////////////////////////////
+
+	public static void addManyTraps()
+	{
+		int addTrapNumber;
+
+		for (addTrapNumber = 0; addTrapNumber < numTraps; addTrapNumber++)
+		{
+			addOneTrap();
+		}
+	}
+
 	
 	/////////////////////////////////////////////////////////////////////////
 	//
@@ -780,7 +852,43 @@ public class CatDogMouse
 		{
 			changePlayerLocation(newX, newY);
 		}
-		// 6. Check next Location is Empty
+		// 6. Check next Location is Additional Life
+		else if(house.getChar(newX, newY) == LIFECHAR)
+		{
+			// 1. LIFEMAX가 아니라면 LIFE를 추가하고 changePlayerLocation
+			if(numLife < MAXLIFE) {
+				numLife++;
+				System.out.println("I got an additional life!");
+				System.out.printf("Life: %d -> %d\n", numLife - 1, numLife);
+			}
+			else {
+				System.out.println("I got an additional life!");
+				System.out.println("But I already have a full life!!");
+			}
+			changePlayerLocation(newX, newY);
+
+
+		}
+		// 7. Check next Location is Trap
+		else if(house.getChar(newX, newY) == TRAPCHAR)
+		{
+			// 1. 쥐의 개수가 0보다 클 때 쥐의 개수를 1 감소한다.
+			System.out.println("Oooppppsss!!!!! I got trapped!!!");
+			if(miceCarried > 0) {
+				miceCarried--;
+				System.out.println("I lose my mice T.T");
+				System.out.printf("Mice Carried: %d -> %d\n", miceCarried + 1, miceCarried);
+			}
+			else {
+				System.out.println("But I don't have any mice ;;");
+			}
+
+			changePlayerLocation(newX, newY);
+
+
+
+		}
+		// 8. Check next Location is Empty
 		else if(house.emptyLocation(newX, newY)) {
 			// if we can go, then change player's location.
 			changePlayerLocation(newX, newY);
@@ -883,6 +991,13 @@ public class CatDogMouse
 		house.changeHouseSize(house.getHouseSize()-house.getSizeIncrement());
 		// Add one dog for the next level
 		if (numDogs < MAXDOGS) numDogs++;
+
+		// Add one life for the next level
+		if(numAddLife < MAXADDLIFE) numAddLife++;
+
+		// Add one trap for the next level
+		if(numTraps < MAXTRAP) numTraps++;
+
 		// If we have not visited this level yet, then add mice
 		if (house.getMaxFloorReached() < house.getFloorNumber()){
 			house.setMaxFloorReached(house.getFloorNumber());
@@ -909,6 +1024,10 @@ public class CatDogMouse
 		house.changeHouseSize(house.getHouseSize()+house.getSizeIncrement());
 		// Remove one dog for the next level
 		numDogs--;
+		// Remove one additional life for the next level
+		numAddLife--;
+		// Remove one trap for the next level
+		numTraps--;
 	
 		numMice = 0;
 	}
@@ -993,6 +1112,10 @@ public class CatDogMouse
 		house.startHouse(number);
 		// Start each house with 1 dog
 		numDogs=1;
+		// Start each house with 0 additional life
+		numAddLife=0;
+		// Start each house with 0 trap
+		numTraps=0;
 		// Start each house with the same amount of mice as the house number
 		numMice=house.getHouseNumber();
 	
@@ -1035,6 +1158,9 @@ public class CatDogMouse
 	
 	public static void main(String [] args)
 	{
+		// Set Life
+		numLife = 3;
+
 		char command;
 	
 		initVariables();
@@ -1057,6 +1183,8 @@ public class CatDogMouse
 			addManyMice();
 			addPlayer();
 			addExitandStairs();
+			addManyAdditionalLife();
+			addManyTraps();
 		
 			// Stay in this house until the player reaches a stairs
 			while(true)
@@ -1110,10 +1238,23 @@ public class CatDogMouse
 				// If the player loses, then quit the program
 				if (gameLost())
 				{
-					printScoreAndHouseAndKey();
-					printLoseMessage();
-		
-					return;
+					numLife--;
+
+					if(numLife <= 0)
+					{
+						printScoreAndHouseAndKey();
+						printLoseMessage();
+						return;
+					}
+					else {
+						for (int i = 0; i < numDogs; i++) {
+							while (dogs[i].getX() == player.getX() && dogs[i].getY() == player.getY()) {
+								house.setChar(player.getX(), player.getY(), CATCHAR);
+								addOneDog(i);
+							}
+						}
+						break;
+					}
 				}
 	
 			}
